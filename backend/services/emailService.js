@@ -16,7 +16,7 @@ export const sendEmail = async (to, subject, html) => {
         console.log("Mock Email Sent:");
         console.log(`To: ${to}`);
         console.log(`Subject: ${subject}`);
-        // console.log(`Body: ${html}`);
+        console.log(`Body: ${html}`);
         return;
     }
 

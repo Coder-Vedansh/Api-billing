@@ -24,7 +24,13 @@ const Login = () => {
       login(data.token, data.role);
       navigate("/dashboard");
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
+      if (err.response?.status === 403 && err.response?.data?.message?.includes("verify")) {
+        setError(<>
+          Email not verified. <Link to={`/verify-email?email=${email}`} className="underline font-bold">Verify now</Link>
+        </>);
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
       console.error(err);
     }
   };
@@ -92,8 +98,8 @@ const Register = () => {
     setSuccess("");
     try {
       await registerUser(name, email, password);
-      setSuccess("Account created successfully!");
-      setTimeout(() => navigate("/"), 1500);
+      // Redirect to verification instead of login
+      navigate(`/verify-email?email=${email}`);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please checking your inputs.");
       console.error(err);
@@ -193,4 +199,11 @@ export default function App() {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute roles={["super_
+          <ProtectedRoute roles={["super_admin", "user"]}>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}

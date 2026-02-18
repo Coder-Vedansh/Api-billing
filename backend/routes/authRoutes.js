@@ -39,54 +39,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Verify OTP
-router.post("/verify-otp", async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email });
 
-    if (!user) return res.status(400).json({ message: "User not found" });
-    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
-
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    await user.save();
-
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
-    res.json({ message: "Email verified successfully", token, role: user.role });
-
-  } catch (error) {
-    console.error("Verification Error:", error);
-    res.status(500).json({ message: "Server error during verification" });
-  }
-});
-
-// Resend OTP
-router.post("/resend-otp", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) return res.status(400).json({ message: "User not found" });
-    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpires = Date.now() + 10 * 60 * 1000;
-    await user.save();
-
-    await sendEmail(email, "Verify your email", `Your new OTP is: ${otp}`);
-    res.json({ message: "OTP sent successfully" });
-  } catch (error) {
-    console.error("Resend OTP Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 
 
@@ -94,13 +47,13 @@ router.post("/resend-otp", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  // Super Admin
+  // Super Admin (Case Insensitive Email)
   if (
-    email === process.env.SUPER_ADMIN_EMAIL &&
+    email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase() &&
     password === process.env.SUPER_ADMIN_PASSWORD
   ) {
     const token = jwt.sign(
-      { email, role: "super_admin" },
+      { email: email.toLowerCase(), role: "super_admin" },
       process.env.JWT_SECRET
     );
     return res.json({ token, role: "super_admin" });
@@ -113,9 +66,7 @@ router.post("/login", async (req, res) => {
     return res.status(403).json({ message: "Please verify your email first", isVerified: false });
   }
 
-  if (!user.isVerified) {
-    return res.status(403).json({ message: "Please verify your email first", isVerified: false });
-  }
+
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ message: "Wrong password" });
