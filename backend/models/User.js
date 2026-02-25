@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: { type: Boolean, default: false },
   otp: String,
-  otpExpires: Date
-});
+  otpExpires: Date,
+  subscribedServices: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }]
+}, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

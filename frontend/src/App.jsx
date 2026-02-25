@@ -3,10 +3,12 @@ import { Routes, Route, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./components/Dashboard";
-import Analytics from "./pages/Analytics";
+import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { loginUser, registerUser } from "./api/auth";
 
 const Login = () => {
@@ -21,16 +23,16 @@ const Login = () => {
     setError("");
     try {
       const { data } = await loginUser(email, password);
+
+      if (data.isVerified === false) {
+        navigate(`/verify-email?email=${email}`);
+        return;
+      }
+
       login(data.token, data.role);
       navigate("/dashboard");
     } catch (err) {
-      if (err.response?.status === 403 && err.response?.data?.message?.includes("verify")) {
-        setError(<>
-          Email not verified. <Link to={`/verify-email?email=${email}`} className="underline font-bold">Verify now</Link>
-        </>);
-      } else {
-        setError("Invalid credentials. Please try again.");
-      }
+      setError(err.response?.data?.message || "Invalid credentials. Please try again.");
       console.error(err);
     }
   };
@@ -74,6 +76,10 @@ const Login = () => {
           <button className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
             Sign In
           </button>
+
+          <div className="text-right mt-2">
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">Forgot Password?</Link>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
@@ -172,6 +178,8 @@ export default function App() {
       <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/dashboard"
         element={
@@ -181,10 +189,10 @@ export default function App() {
         }
       />
       <Route
-        path="/analytics"
+        path="/services"
         element={
           <ProtectedRoute roles={["super_admin", "user"]}>
-            <Analytics />
+            <Services />
           </ProtectedRoute>
         }
       />

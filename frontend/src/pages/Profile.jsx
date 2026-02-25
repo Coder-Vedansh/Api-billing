@@ -1,16 +1,33 @@
+import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
+import axios from "../api/axios";
 
 const Profile = () => {
     const { role } = useAuth();
-
-    // Mock user data since we only have role in context currently
-    const user = {
-        name: "Test User",
-        email: "user@example.com",
+    const [userData, setUserData] = useState({
+        name: "Loading...",
+        email: "Loading...",
         role: role,
-        joined: "Jan 2024"
-    };
+        joined: "Loading..."
+    });
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const { data } = await axios.get("/auth/me");
+                setUserData({
+                    name: data.name,
+                    email: data.email,
+                    role: data.role,
+                    joined: new Date(data.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                });
+            } catch (error) {
+                console.error("Failed to fetch profile", error);
+            }
+        };
+        fetchProfile();
+    }, []);
 
     return (
         <Layout>
@@ -25,24 +42,24 @@ const Profile = () => {
                     <div className="relative -top-16 mb-4">
                         <div className="w-32 h-32 rounded-full border-4 border-white bg-white flex items-center justify-center shadow-lg">
                             <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-4xl font-bold text-blue-600">
-                                {user.role[0].toUpperCase()}
+                                {userData.role ? userData.role[0].toUpperCase() : 'U'}
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-1">{user.name}</h3>
-                            <p className="text-blue-600 font-medium capitalize mb-6">{user.role}</p>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-1">{userData.name}</h3>
+                            <p className="text-blue-600 font-medium capitalize mb-6">{userData.role}</p>
 
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Email Address</label>
-                                    <p className="text-gray-900">{user.email}</p>
+                                    <p className="text-gray-900">{userData.email}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Member Since</label>
-                                    <p className="text-gray-900">{user.joined}</p>
+                                    <p className="text-gray-900">{userData.joined}</p>
                                 </div>
                             </div>
                         </div>

@@ -16,35 +16,37 @@ const adminOnly = (req, res, next) => {
 };
 
 // Get System Overview (Admin/Super Admin)
-router.get("/overview", protect, adminOnly, async (req, res) => {
+router.get("/overview", protect(), adminOnly, async (req, res) => {
     try {
         const totalUsers = await User.countDocuments();
-        const totalKeys = await APIKey.countDocuments();
-        const activeKeys = await APIKey.countDocuments({ isActive: true });
-
+        const keys = await APIKey.find();
         const usage = await Usage.find().populate("apiKey");
+
         let totalRequests = 0;
         let totalRevenue = 0;
 
         usage.forEach(u => {
-            totalRequests += u.count;
-            totalRevenue += u.count * (u.apiKey.rate || 0.01);
+            if (u.apiKey) {
+                totalRequests += u.count;
+                totalRevenue += u.count * (u.apiKey.rate || 0.01);
+            }
         });
 
         res.json({
             totalUsers,
-            totalKeys,
-            activeKeys,
+            totalKeys: keys.length,
+            activeKeys: keys.filter(k => k.isActive).length,
             totalRequests,
             totalRevenue: totalRevenue.toFixed(2)
         });
     } catch (error) {
+        console.error("Overview Error:", error);
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 });
 
 // Get User List with Stats
-router.get("/users", protect, adminOnly, async (req, res) => {
+router.get("/users", protect(), adminOnly, async (req, res) => {
     try {
         const users = await User.find().select("-password");
         const userStats = await Promise.all(users.map(async (user) => {
@@ -55,8 +57,10 @@ router.get("/users", protect, adminOnly, async (req, res) => {
             let reqs = 0;
             let rev = 0;
             usage.forEach(u => {
-                reqs += u.count;
-                rev += u.count * (u.apiKey.rate || 0.01);
+                if (u.apiKey) {
+                    reqs += u.count;
+                    rev += u.count * (u.apiKey.rate || 0.01);
+                }
             });
 
             return {
@@ -74,7 +78,7 @@ router.get("/users", protect, adminOnly, async (req, res) => {
 });
 
 // Update API Key Rate (Admin Only)
-router.put("/keys/:id/rate", protect, adminOnly, async (req, res) => {
+router.put("/keys/:id/rate", protect(), adminOnly, async (req, res) => {
     try {
         const { rate } = req.body;
         const key = await APIKey.findById(req.params.id);

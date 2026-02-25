@@ -1,7 +1,10 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ServiceManagement from "./pages/ServiceManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+import Layout from "./components/Layout";
 
 function App() {
   return (
@@ -11,7 +14,19 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute roles={["super_admin", "admin"]}>
-            <Dashboard />
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services"
+        element={
+          <ProtectedRoute roles={["super_admin", "admin"]}>
+            <Layout>
+              <ServiceManagement />
+            </Layout>
           </ProtectedRoute>
         }
       />

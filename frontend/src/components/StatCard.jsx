@@ -1,18 +1,22 @@
-const StatCard = ({ title, value, icon, trend, color }) => {
+
+const StatCard = ({ title, value, icon, trend }) => {
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-md transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
-                    <span className="text-2xl drop-shadow-sm">{icon}</span>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-200">
+            <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-slate-50 rounded-lg text-2xl border border-slate-100 text-slate-600">
+                    {icon}
                 </div>
                 {trend && (
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${trend > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${trend > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                         {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
                     </span>
                 )}
             </div>
-            <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</h3>
-            <p className="text-3xl font-extrabold text-slate-800 tracking-tight">{value}</p>
+
+            <div>
+                <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">{title}</h3>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">{value}</h2>
+            </div>
         </div>
     );
 };

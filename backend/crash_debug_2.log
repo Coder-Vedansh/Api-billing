@@ -1,0 +1,19 @@
+Cron Jobs Scheduled: Monthly Report (0 0 1 * *)
+Server running on port 5000
+MongoDB Connected
+User created: crash_test_1771486210437@example.com, OTP: 405516
+Email sent to crash_test_1771486210437@example.com
+User created: crash_test_1771486305238@example.com, OTP: 145189
+Email sent to crash_test_1771486305238@example.com
+APIKey validation failed: 'user' is missing. Stack trace:
+Trace
+    at model.<anonymous> (file:///D:/client/Api-billing/backend/models/APIKey.js:14:17)
+    at callMiddlewareFunction (D:\client\Api-billing\backend\node_modules\kareem\index.js:628:27)
+    at next (D:\client\Api-billing\backend\node_modules\kareem\index.js:93:7)
+    at Kareem.execPre (D:\client\Api-billing\backend\node_modules\kareem\index.js:122:8)
+    at Kareem.wrap (D:\client\Api-billing\backend\node_modules\kareem\index.js:368:8)
+    at model.$__validate (D:\client\Api-billing\backend\node_modules\kareem\index.js:502:11)
+    at D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:2666:10
+    at new Promise (<anonymous>)
+    at model.validate (D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:2665:10)
+    at model.validateBeforeSave (D:\client\Api-billing\backend\node_modules\mongoose\lib\plugins\validateBeforeSave.js:35:12)

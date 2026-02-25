@@ -1,0 +1,49 @@
+Cron Jobs Scheduled: Monthly Report (0 0 1 * *)
+Server running on port 5000
+MongoDB Connected
+APIKey validation failed: 'user' is missing. Stack trace:
+Trace
+    at model.<anonymous> (file:///D:/client/Api-billing/backend/models/APIKey.js:14:17)
+    at callMiddlewareFunction (D:\client\Api-billing\backend\node_modules\kareem\index.js:628:27)
+    at next (D:\client\Api-billing\backend\node_modules\kareem\index.js:93:7)
+    at Kareem.execPre (D:\client\Api-billing\backend\node_modules\kareem\index.js:122:8)
+    at Kareem.wrap (D:\client\Api-billing\backend\node_modules\kareem\index.js:368:8)
+    at model.$__validate (D:\client\Api-billing\backend\node_modules\kareem\index.js:502:11)
+    at D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:2666:10
+    at new Promise (<anonymous>)
+    at model.validate (D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:2665:10)
+    at model.validateBeforeSave (D:\client\Api-billing\backend\node_modules\mongoose\lib\plugins\validateBeforeSave.js:35:12)
+D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:3381
+    this.$__.validationError = new ValidationError(this);
+                               ^
+
+ValidationError: APIKey validation failed: user: Path `user` is required.
+    at Document.invalidate (D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:3381:32)
+    at D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:3142:17
+    at D:\client\Api-billing\backend\node_modules\mongoose\lib\schemaType.js:1446:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+  errors: {
+    user: ValidatorError: Path `user` is required.
+        at validate (D:\client\Api-billing\backend\node_modules\mongoose\lib\schemaType.js:1443:13)
+        at SchemaType.doValidate (D:\client\Api-billing\backend\node_modules\mongoose\lib\schemaType.js:1427:7)
+        at D:\client\Api-billing\backend\node_modules\mongoose\lib\document.js:3134:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+      properties: {
+        validator: [Function (anonymous)],
+        message: 'Path `user` is required.',
+        type: 'required',
+        path: 'user',
+        fullPath: undefined,
+        value: undefined
+      },
+      kind: 'required',
+      path: 'user',
+      value: undefined,
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'APIKey validation failed'
+}
+
+Node.js v24.11.0

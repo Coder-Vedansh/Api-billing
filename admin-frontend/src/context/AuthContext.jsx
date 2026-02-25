@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem("adminToken");
         const storedRole = localStorage.getItem("adminRole");
+        console.log("AuthContext Init:", { token, storedRole });
         if (token && storedRole) {
             setRole(storedRole);
         }

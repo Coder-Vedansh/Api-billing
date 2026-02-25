@@ -1,0 +1,6 @@
+Cron Jobs Scheduled: Monthly Report (0 0 1 * *)
+Server running on port 5000
+MongoDB Connected
+Subscription Error: ReferenceError: User is not defined
+    at file:///D:/client/Api-billing/backend/routes/serviceRoutes.js:65:22
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

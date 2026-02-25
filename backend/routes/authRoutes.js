@@ -30,6 +30,8 @@ router.post("/register", async (req, res) => {
       otpExpires
     });
 
+    console.log(`User created: ${email}, OTP: ${otp}`);
+
     await sendEmail(email, "Verify your email", `Your OTP is: ${otp}`);
 
     res.json({ message: "Registration successful. Please verify your email." });
@@ -40,42 +42,234 @@ router.post("/register", async (req, res) => {
 });
 
 
+// Verify OTP
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
 
+    // Super Admin Bypass
+    if (email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase()) {
+      // Also verify the user in DB if exists to prevent login loops
+      const superUser = await User.findOne({ email });
+      if (superUser) {
+        superUser.isVerified = true;
+        superUser.otp = undefined;
+        superUser.otpExpires = undefined;
+        await superUser.save();
+        console.log("Super Admin DB User marked as verified.");
+      }
+
+      const token = jwt.sign({ email: email.toLowerCase(), role: "super_admin" }, process.env.JWT_SECRET);
+      return res.json({ message: "Detailed verified", token, role: "super_admin" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found." });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "Email already verified." });
+    }
+
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET
+    );
+
+    res.json({ message: "Email verified successfully.", token, role: user.role });
+
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    res.status(500).json({ message: "Server error during OTP verification" });
+  }
+});
+
+
+// Resend OTP
+router.post("/resend-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Super Admin - Auto Verify if not exists, or just send success
+    if (email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase()) {
+      return res.json({ message: "Super Admin does not need OTP." });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(400).json({ message: "User not found" });
+    if (user.isVerified) return res.status(400).json({ message: "User already verified" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 10 * 60 * 1000;
+    await user.save();
+    console.log(`Resend OTP for ${email}: ${otp}`);
+
+    await sendEmail(email, "Verify your email", `Your new OTP is: ${otp}`);
+    res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Resend OTP Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+// Forgot Password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    console.log(`Forgot Password OTP for ${email}: ${otp}`);
+
+    await sendEmail(email, "Reset your password", `Your OTP for password reset is: ${otp}`);
+
+    res.json({ message: "OTP sent to your email." });
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Reset Password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    user.password = hash;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Password reset successful. You can now login." });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 
 // Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
   // Super Admin (Case Insensitive Email)
+  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || "";
   if (
-    email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase() &&
+    email.toLowerCase() === superAdminEmail.toLowerCase() &&
     password === process.env.SUPER_ADMIN_PASSWORD
   ) {
     const token = jwt.sign(
       { email: email.toLowerCase(), role: "super_admin" },
       process.env.JWT_SECRET
     );
+    console.log("Super Admin logged in via ENV credentials");
     return res.json({ token, role: "super_admin" });
   }
 
+  console.log(`Regular login attempt for: ${email}`);
+
   const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  if (!user.isVerified) {
-    return res.status(403).json({ message: "Please verify your email first", isVerified: false });
+  if (!user) {
+    console.log("User not found in DB");
+    return res.status(404).json({ message: "User not found" });
   }
-
-
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ message: "Wrong password" });
+
+  console.log(`User found: ${user.email}, isVerified: ${user.isVerified}`);
+
+  if (!user.isVerified) {
+    // Generate numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    console.log(`Login: Generated OTP for unverified user ${email}: ${otp}`);
+    await sendEmail(email, "Verify your email", `Your OTP is: ${otp}`);
+
+    return res.json({
+      message: "Please verify your email",
+      isVerified: false,
+      email: user.email
+    });
+  }
 
   const token = jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET
   );
-  res.json({ token, role: user.role });
+  res.json({ token, role: user.role, isVerified: true });
+});
+
+// Get Current User Profile
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password -otp -otpExpires");
+
+    if (!user) {
+      // Check for Super Admin based on email in token if ID null (since super admin might not be in DB properly or just env based)
+      // But for "Member Since" we need DB. If super admin is only ENV, we mock it.
+      if (decoded.role === 'super_admin') {
+        return res.json({
+          name: "Super Admin",
+          email: process.env.SUPER_ADMIN_EMAIL,
+          role: "super_admin",
+          createdAt: new Date(), // Just now
+          isVerified: true
+        });
+      }
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Profile Fetch Error:", error);
+    res.status(401).json({ message: "Invalid Token" });
+  }
 });
 
 export default router;

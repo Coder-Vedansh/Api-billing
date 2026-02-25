@@ -5,14 +5,15 @@ const ProtectedRoute = ({ children, roles }) => {
     const { user, role, loading } = useAuth();
     const token = localStorage.getItem("adminToken");
 
-    if (loading) return <div className="flex h-screen items-center justify-center text-slate-500">Loading...</div>;
+    if (loading) return <div className="flex h-screen items-center justify-center text-slate-500">Loading Auth...</div>;
 
     if (!token) {
         return <Navigate to="/" />;
     }
 
     if (roles && !roles.includes(role)) {
-        return <Navigate to="/dashboard" />; // Or unauthorized page
+        console.warn("ProtectedRoute: Role mismatch. Redirecting to /", { userRole: role, allowedRoles: roles });
+        return <Navigate to="/" />; // Redirect to login if unauthorized
     }
 
     return children;

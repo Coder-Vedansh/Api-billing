@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import StatCard from "../components/StatCard";
 import axios from "../api/axios";
 import { useAuth } from "../context/AuthContext";
@@ -32,6 +31,7 @@ const Dashboard = () => {
             setUsers(usersRes.data);
         } catch (error) {
             console.error("Error fetching admin data:", error);
+            setError(error.message || "Failed to load data");
         } finally {
             setLoading(false);
         }
@@ -59,10 +59,13 @@ const Dashboard = () => {
         alert(`Manage keys for user ${userId} coming soon`);
     }
 
-    if (loading) return <Layout><div className="flex h-full items-center justify-center text-slate-500">Loading...</div></Layout>;
+    const [error, setError] = useState(null);
+
+    if (loading) return <div className="flex h-full items-center justify-center text-slate-500">Loading Dashboard Data...</div>;
+    if (error) return <div className="p-8 text-red-500">Error loading dashboard: {error}</div>;
 
     return (
-        <Layout>
+        <div>
             <div className="mb-8 flex justify-between items-end">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800">
@@ -175,7 +178,7 @@ const Dashboard = () => {
                     </table>
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 };
 

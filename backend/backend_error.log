@@ -1,0 +1,10 @@
+file:///D:/client/Api-billing/backend/routes/serviceRoutes.js:3
+import { protect, adminOnly, superAdminOnly } from "../middleware/authMiddleware.js";
+                  ^^^^^^^^^
+SyntaxError: The requested module '../middleware/authMiddleware.js' does not provide an export named 'adminOnly'
+    at #_instantiate (node:internal/modules/esm/module_job:254:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:369:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:691:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.11.0

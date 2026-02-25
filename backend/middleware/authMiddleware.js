@@ -14,3 +14,21 @@ export const protect = (roles = []) => {
     next();
   };
 };
+
+// Check if user is admin or super_admin
+export const adminOnly = (req, res, next) => {
+  if (req.user && (req.user.role === "admin" || req.user.role === "super_admin")) {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as an admin" });
+  }
+};
+
+// Check if user is super_admin
+export const superAdminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "super_admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as super admin" });
+  }
+};

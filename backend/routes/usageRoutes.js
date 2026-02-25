@@ -40,8 +40,8 @@ router.get("/stats", protect(), async (req, res) => {
     }));
 
     res.json({
-        totalRequests,
-        totalRevenue: totalRevenue.toFixed(2),
+        totalUsage: totalRequests,
+        currentBill: totalRevenue.toFixed(2),
         activeKeys: keys.filter(k => k.isActive).length,
         chartData
     });
