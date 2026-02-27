@@ -1,6 +1,36 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "../api/axios";
+import { useAuth } from "../context/AuthContext";
+
+const AuthLayout = ({ children, title, subtitle }) => (
+    <div className="min-h-screen flex items-center justify-center bg-[#fcfdfe] relative overflow-hidden font-sans">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px]"></div>
+        </div>
+
+        <div className="max-w-md w-full px-6 relative z-10 animate-in">
+            <div className="bg-white rounded-[2.5rem] premium-shadow border border-slate-100 p-10 md:p-12 overflow-hidden relative text-center">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+
+                <div className="mb-10 relative z-10">
+                    <div className="w-16 h-16 bg-slate-950 rounded-[1.25rem] flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6 shadow-2xl shadow-slate-900/20 transform hover:scale-105 transition-transform duration-500">
+                        A
+                    </div>
+                    <h2 className="text-3xl font-extrabold text-slate-950 font-display tracking-tight">{title}</h2>
+                    <p className="text-slate-400 mt-2 font-medium text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: subtitle }}></p>
+                </div>
+
+                {children}
+            </div>
+
+            <p className="mt-8 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                &copy; 2026 APIBILL CLOUD ECOSYSTEM
+            </p>
+        </div>
+    </div>
+);
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
@@ -9,6 +39,7 @@ const VerifyEmail = () => {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -25,7 +56,6 @@ const VerifyEmail = () => {
         newOtp[index] = element.value;
         setOtp(newOtp);
 
-        // Focus next input
         if (element.nextSibling && element.value) {
             element.nextSibling.focus();
         }
@@ -45,7 +75,7 @@ const VerifyEmail = () => {
 
         const code = otp.join("");
         if (code.length !== 6) {
-            setError("Please enter a valid 6-digit code.");
+            setError("Universal code requires 6 digits.");
             setLoading(false);
             return;
         }
@@ -54,17 +84,15 @@ const VerifyEmail = () => {
             const { data } = await axios.post("/auth/verify-otp", { email, otp: code });
             setSuccess(data.message);
 
-            // Store token if returned (auto-login)
             if (data.token) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("role", data.role);
+                login(data.token, data.role, { name: data.name || "Architect" });
                 setTimeout(() => navigate("/dashboard"), 1500);
             } else {
                 setTimeout(() => navigate("/"), 2000);
             }
 
         } catch (err) {
-            setError(err.response?.data?.message || "Verification failed");
+            setError(err.response?.data?.message || "Verification sync failed");
         } finally {
             setLoading(false);
         }
@@ -75,74 +103,62 @@ const VerifyEmail = () => {
         setSuccess("");
         try {
             await axios.post("/auth/resend-otp", { email });
-            setSuccess("New code sent to your email.");
+            setSuccess("Satellite sync: New code sent.");
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to resend OTP");
+            setError(err.response?.data?.message || "Signal lost: Failed to resend.");
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden">
-            {/* Background Decor */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-100/50 blur-3xl"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-100/50 blur-3xl"></div>
+        <AuthLayout
+            title="Integrity Check"
+            subtitle={`Enter the 6-digit sync code sent to <br/><span class="font-bold text-slate-800">${email}</span>`}
+        >
+            {error && (
+                <div className="mb-6 p-4 bg-rose-50 text-rose-600 text-[11px] font-bold rounded-2xl border border-rose-100 text-center uppercase tracking-wider">{error}</div>
+            )}
+            {success && (
+                <div className="mb-6 p-4 bg-emerald-50 text-emerald-600 text-[11px] font-bold rounded-2xl border border-emerald-100 text-center uppercase tracking-wider">{success}</div>
+            )}
 
-            <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/50 relative z-10">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-slate-800">Verify Email</h2>
-                    <p className="text-slate-500 mt-2">Enter the 6-digit code sent to <br /><span className="font-semibold text-slate-700">{email}</span></p>
+            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                <div className="flex justify-center gap-3">
+                    {otp.map((data, index) => (
+                        <input
+                            key={index}
+                            type="text"
+                            name="otp"
+                            maxLength="1"
+                            className="w-12 h-14 bg-slate-50 border border-slate-100 rounded-2xl text-center text-2xl font-black focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition-all text-slate-900 shadow-sm"
+                            value={data}
+                            onChange={(e) => handleChange(e.target, index)}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
+                            onFocus={(e) => e.target.select()}
+                        />
+                    ))}
                 </div>
 
-                {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center">
-                        {error}
-                    </div>
-                )}
-                {success && (
-                    <div className="mb-4 p-3 bg-green-50 text-green-600 text-sm rounded-lg border border-green-100 text-center">
-                        {success}
-                    </div>
-                )}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-slate-950 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-[0.98] text-xs uppercase tracking-widest disabled:opacity-50"
+                >
+                    {loading ? "Synchronizing..." : "Complete Integration"}
+                </button>
+            </form>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="flex justify-center gap-2">
-                        {otp.map((data, index) => (
-                            <input
-                                key={index}
-                                type="text"
-                                name="otp"
-                                maxLength="1"
-                                className="w-12 h-12 border border-slate-300 rounded-lg text-center text-xl font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
-                                value={data}
-                                onChange={(e) => handleChange(e.target, index)}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                                onFocus={(e) => e.target.select()}
-                            />
-                        ))}
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-50"
-                    >
-                        {loading ? "Verifying..." : "Verify Account"}
+            <div className="mt-8 text-center space-y-4">
+                <p className="text-slate-400 text-xs font-medium">
+                    Lost the signal?{" "}
+                    <button onClick={handleResend} className="text-brand-600 font-bold hover:underline">
+                        Retry Sync
                     </button>
-                </form>
-
-                <div className="mt-6 text-center">
-                    <p className="text-slate-500 text-sm">
-                        Didn't receive code?{" "}
-                        <button onClick={handleResend} className="text-indigo-600 font-bold hover:underline">
-                            Resend
-                        </button>
-                    </p>
-                    <div className="mt-4">
-                        <Link to="/register" className="text-sm text-slate-400 hover:text-slate-600">Back to Register</Link>
-                    </div>
+                </p>
+                <div>
+                    <Link to="/register" className="text-[10px] font-bold text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors">Abort & Rollback</Link>
                 </div>
             </div>
-        </div>
+        </AuthLayout>
     );
 };
 

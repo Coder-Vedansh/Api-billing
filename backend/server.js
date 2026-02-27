@@ -29,6 +29,11 @@ app.use("/api/admin", adminRoutes);
 import serviceRoutes from "./routes/serviceRoutes.js";
 app.use("/api/services", serviceRoutes);
 
+// Health check route
+app.get("/", (req, res) => {
+  res.send("API Billing Backend is running");
+});
+
 // Start Cron Jobs
 startCronJobs();
 

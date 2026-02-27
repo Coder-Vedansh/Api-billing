@@ -23,6 +23,8 @@ router.get("/stats", protect(), async (req, res) => {
     let totalRevenue = 0;
 
     const salesData = usage.reduce((acc, curr) => {
+        if (!curr.apiKey) return acc; // Skip if apiKey not found
+        
         const date = new Date(curr.date).toLocaleDateString();
         const revenue = curr.count * (curr.apiKey.rate || 0.01);
 

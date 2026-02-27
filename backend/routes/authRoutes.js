@@ -87,7 +87,13 @@ router.post("/verify-otp", async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    res.json({ message: "Email verified successfully.", token, role: user.role });
+    res.json({ 
+      message: "Email verified successfully.", 
+      token, 
+      role: user.role,
+      name: user.name,
+      email: user.email
+    });
 
   } catch (error) {
     console.error("Verify OTP Error:", error);
@@ -238,7 +244,13 @@ router.post("/login", async (req, res) => {
     { id: user._id, role: user.role },
     process.env.JWT_SECRET
   );
-  res.json({ token, role: user.role, isVerified: true });
+  res.json({ 
+    token, 
+    role: user.role, 
+    isVerified: true,
+    name: user.name,
+    email: user.email
+  });
 });
 
 // Get Current User Profile

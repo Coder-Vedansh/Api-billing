@@ -1,48 +1,55 @@
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-const SalesChart = ({ data, title = "Analytics Overview", color = "#3B82F6", dataKey = "sales", formatter = (val) => val }) => {
+const SalesChart = ({ data, title = "Analytics Overview", color = "#4f5aef", dataKey = "sales", formatter = (val) => val }) => {
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-                <select className="bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none">
-                    <option>Last 30 Days</option>
-                    <option>Last 7 Days</option>
-                </select>
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 premium-shadow h-full flex flex-col">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                    <h3 className="text-lg font-bold text-slate-900 font-display">{title}</h3>
+                    <p className="text-xs text-slate-500 font-medium">Real-time performance metrics</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100">
+                        <button className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-white text-slate-900 shadow-sm border border-slate-100 rounded-lg">30D</button>
+                        <button className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900">7D</button>
+                    </div>
+                </div>
             </div>
-            <div className="h-80">
+            <div className="flex-1 h-80 min-h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorChart" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                                <stop offset="95%" stopColor={color} stopOpacity={0} />
+                                <stop offset="5%" stopColor={color} stopOpacity={0.15} />
+                                <stop offset="95%" stopColor={color} stopOpacity={0.01} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <CartesianGrid strokeDasharray="6 6" vertical={false} stroke="#f1f5f9" />
                         <XAxis
                             dataKey="date"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 12 }}
-                            dy={10}
+                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
+                            dy={15}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 12 }}
+                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
                             tickFormatter={formatter}
                         />
                         <Tooltip
                             contentStyle={{
-                                backgroundColor: '#fff',
-                                borderRadius: '12px',
-                                border: '1px solid #e2e8f0',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                backgroundColor: '#0f172a',
+                                borderRadius: '16px',
+                                border: 'none',
+                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+                                padding: '12px 16px'
                             }}
-                            itemStyle={{ color: '#1f2937', fontWeight: 'bold' }}
-                            formatter={(value) => [formatter(value), 'Value']}
-                            cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                            itemStyle={{ color: '#fff', fontWeight: 'bold', fontSize: '13px' }}
+                            labelStyle={{ color: '#94a3b8', fontSize: '11px', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            formatter={(value) => [formatter(value), 'Revenue']}
+                            cursor={{ stroke: '#cbd5e1', strokeWidth: 1.5, strokeDasharray: '4 4' }}
                         />
                         <Area
                             type="monotone"
@@ -51,7 +58,7 @@ const SalesChart = ({ data, title = "Analytics Overview", color = "#3B82F6", dat
                             strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorChart)"
-                            activeDot={{ r: 6, fill: color, stroke: "#fff", strokeWidth: 3 }}
+                            activeDot={{ r: 6, fill: color, stroke: "#fff", strokeWidth: 3, shadow: '0 0 10px rgba(0,0,0,0.1)' }}
                         />
                     </AreaChart>
                 </ResponsiveContainer>

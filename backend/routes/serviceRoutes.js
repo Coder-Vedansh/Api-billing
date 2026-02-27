@@ -1,7 +1,6 @@
 import express from "express";
 import Service from "../models/Service.js";
 import User from "../models/User.js";
-
 import { protect, adminOnly, superAdminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();

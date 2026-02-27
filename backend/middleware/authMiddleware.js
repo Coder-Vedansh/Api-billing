@@ -5,13 +5,19 @@ export const protect = (roles = []) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ message: "No token" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (roles.length && !roles.includes(decoded.role)) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (roles.length && !roles.includes(decoded.role)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
 
-    req.user = decoded;
-    next();
+      // Standardize to req.user._id for routes
+      req.user = { ...decoded, _id: decoded.id || decoded._id };
+      next();
+    } catch (error) {
+      console.error("Auth Middleware Error:", error);
+      return res.status(401).json({ message: "Invalid Token" });
+    }
   };
 };
 
