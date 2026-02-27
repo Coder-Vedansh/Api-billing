@@ -1,0 +1,11 @@
+name: auto start
+on:
+  push:
+    runs-on local-host
+
+    steps:
+    -name: change directory
+    -uses: cd D:\Samyukt\Code-collab
+
+    -name: start the machine
+    -uses: npm start
