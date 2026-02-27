@@ -1,0 +1,42 @@
+name: API Ecosystem CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-ecosystem:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install Dependencies (Root)
+      run: npm install
+      
+    - name: Install Frontend Dependencies
+      run: cd frontend && npm install
+      
+    - name: Install Admin Dependencies
+      run: cd admin-frontend && npm install
+      
+    - name: Install Backend Dependencies
+      run: cd backend && npm install
+      
+    - name: Build Main Frontend
+      run: cd frontend && npm run build
+      
+    - name: Build Admin Frontend
+      run: cd admin-frontend && npm run build
